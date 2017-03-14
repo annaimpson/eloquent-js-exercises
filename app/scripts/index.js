@@ -6,7 +6,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 var hash = "#";
 for (hash; hash.length < 8; hash += "#")
-  //console.log(hash);
+  console.log(hash);
 
 
 
@@ -29,7 +29,7 @@ for (hash; hash.length < 8; hash += "#")
       output += "Fizz";
     if (number % 5 == 0)
       output += "Buzz";
-    //console.log(output || number);
+    console.log(output || number);
   }
 
 
@@ -69,8 +69,8 @@ console.log(output);
     else
       return b;
   };
-  // console.log(min(3, 14));
-  // console.log(min(214, -22));
+  console.log(min(3, 14));
+  console.log(min(214, -22));
 
 
 
@@ -98,9 +98,9 @@ console.log(output);
       else
         return isEven(n - 2);
   }
-  // console.log(isEven(50));
-  // console.log(isEven(75));
-  // console.log(isEven(-1));
+  console.log(isEven(50));
+  console.log(isEven(75));
+  console.log(isEven(-1));
 
 
 
@@ -131,5 +131,5 @@ function countChar (string, char) {
       counted += 1;
   return counted;
 }
-// console.log(countBs("This is a Bs sentence with some bs"));
-// console.log(countChar("Here is a sentence with different letters", "e"));
+console.log(countBs("This is a Bs sentence with some bs"));
+console.log(countChar("Here is a sentence with different letters", "e"));
