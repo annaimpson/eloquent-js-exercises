@@ -1,3 +1,63 @@
+///CHAPTER 2
+
+////////////////////////////////////////////////////////////////////////////////
+///Write a loop that makes seven calls to console.log to output the following
+///triangle:
+////////////////////////////////////////////////////////////////////////////////
+var hash = "#";
+for (hash; hash.length < 8; hash += "#")
+  //console.log(hash);
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Write a program that uses console.log to print all the numbers from 1
+// to 100, with two exceptions. For numbers divisible by 3, print "Fizz"
+// instead of the number, and for numbers divisible by 5 (and not 3), print
+// "Buzz" instead.
+// When you have that working, modify your program to print "FizzBuzz",
+// for numbers that are divisible by both 3 and 5 (and still print "Fizz" or
+// "Buzz" for numbers divisible by only one of those).
+// (This is actually an interview question that has been claimed to weed
+// out a significant percentage of programmer candidates. So if you solved
+// it, you’re now allowed to feel good about yourself.)
+////////////////////////////////////////////////////////////////////////////////
+  for ( var number = 1; number <= 100; number++) {
+    var output = "";
+    if (number % 3 == 0)
+      output += "Fizz";
+    if (number % 5 == 0)
+      output += "Buzz";
+    //console.log(output || number);
+  }
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Write a program that creates a string that represents an 8×8 grid, using
+// newline characters to separate lines. At each position of the grid there
+// is either a space or a “#” character. The characters should form a chess
+// board.
+////////////////////////////////////////////////////////////////////////////////
+var width = 8;
+var output = "";
+
+for ( var i = 0; i < width; i++) {
+  if (i % 2 == 0)
+    output += " ";
+  else
+    output += "#";
+}
+console.log(output);
+
+
+
+
+
+///CHAPTER 3
+
 ////////////////////////////////////////////////////////////////////////////////
 ///The previous chapter introduced the standard function Math.min that returns
 ///its smallest argument. We can do that ourselves now. Write a
@@ -9,8 +69,8 @@
     else
       return b;
   };
-  console.log(min(3, 14));
-  console.log(min(214, -22));
+  // console.log(min(3, 14));
+  // console.log(min(214, -22));
 
 
 
@@ -38,9 +98,9 @@
       else
         return isEven(n - 2);
   }
-  console.log(isEven(50));
-  console.log(isEven(75));
-  console.log(isEven(-1));
+  // console.log(isEven(50));
+  // console.log(isEven(75));
+  // console.log(isEven(-1));
 
 
 
@@ -71,5 +131,5 @@ function countChar (string, char) {
       counted += 1;
   return counted;
 }
-console.log(countBs("This is a Bs sentence with some bs"));
-console.log(countChar("Here is a sentence with different letters", "e"));
+// console.log(countBs("This is a Bs sentence with some bs"));
+// console.log(countChar("Here is a sentence with different letters", "e"));
