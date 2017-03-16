@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 ///CHAPTER 2
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -6,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 var hash = "#";
 for (hash; hash.length < 8; hash += "#")
-  console.log(hash);
+  //console.log(hash);
 
 
 
@@ -29,7 +31,7 @@ for (hash; hash.length < 8; hash += "#")
       output += "Fizz";
     if (number % 5 == 0)
       output += "Buzz";
-    console.log(output || number);
+    //console.log(output || number);
   }
 
 
@@ -50,7 +52,7 @@ for ( var i = 0; i < width; i++) {
   else
     output += "#";
 }
-console.log(output);
+//console.log(output);
 
 
 
@@ -69,8 +71,8 @@ console.log(output);
     else
       return b;
   };
-  console.log(min(3, 14));
-  console.log(min(214, -22));
+  // console.log(min(3, 14));
+  // console.log(min(214, -22));
 
 
 
@@ -98,9 +100,9 @@ console.log(output);
       else
         return isEven(n - 2);
   }
-  console.log(isEven(50));
-  console.log(isEven(75));
-  console.log(isEven(-1));
+  // console.log(isEven(50));
+  // console.log(isEven(75));
+  // console.log(isEven(-1));
 
 
 
@@ -131,5 +133,103 @@ function countChar (string, char) {
       counted += 1;
   return counted;
 }
-console.log(countBs("This is a Bs sentence with some bs"));
-console.log(countChar("Here is a sentence with different letters", "e"));
+//console.log(countBs("This is a Bs sentence with some bs"));
+//console.log(countChar("Here is a sentence with different letters", "e"));
+
+
+
+
+///CHAPTER 4
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Write a range function that takes two arguments, start and end, and
+// returns an array containing all the numbers from start up to (and including)
+// end.
+// Next, write a sum function that takes an array of numbers and returns
+// the sum of these numbers. Run the previous program and see whether
+// it does indeed return 55.
+////////////////////////////////////////////////////////////////////////////////
+
+//part 1
+
+//uses underscore
+var numberRange = _.range(1, 11);
+console.log(numberRange);
+
+//creates two arguments
+function range(start, end){
+  var list = [];
+  for (; start <= end; start++) {
+      list.push(start);
+  }
+  return list;
+}
+console.log(range(1, 10));
+console.log(sum(range(1, 10)));
+
+
+//part 2
+function sum(arr) {
+   return arr.reduce(function (a, b) {
+      return a + b;
+   }, 0);
+}
+console.log(sum([1, 2, 3, 4, 5]));
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Arrays have a method reverse, which changes the array by inverting the
+// order in which its elements appear. For this exercise, write two functions,
+// reverseArray and reverseArrayInPlace. The first, reverseArray, takes an array
+// as argument and produces a new array that has the same elements in
+// the inverse order. The second, reverseArrayInPlace, does what the reverse
+// method does: it modifies the array given as argument in order to reverse
+// its elements. Neither may use the standard reverse method.
+// Thinking back to the notes about side effects and pure functions in
+// the previous chapter, which variant do you expect to be useful in more
+// situations? Which one is more efficient?
+////////////////////////////////////////////////////////////////////////////////
+function reverseArray(arr){
+  var reversed = [];
+  for (var i = arr.length - 1; i >= 0; i--) {
+        reversed += arr[i];
+    }
+  return reversed;
+}
+console.log(reverseArray(['cat', 'dog', 'fish', 'dragon']));
+
+
+
+function reverseArrayInPlace(arr){
+  for (var i = 0; i < Math.floor(arr.length/2); i++) {
+    var original = arr[i];
+    arr[i] = arr[arr.length - 1 - i];
+    arr[arr.length - 1 - i] = original;
+    }
+  return arr;
+}
+console.log(reverseArrayInPlace(['cat', 'dog', 'fish']));
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Write a function arrayToList that builds up a data structure like the
+// previous one when given [1, 2, 3] as argument, and write a listToArray
+// function that produces an array from a list. Also write the helper
+// functions prepend, which takes an element and a list and creates a new
+// list that adds the element to the front of the input list, and nth, which
+// takes a list and a number and returns the element at the given position
+// in the list, or undefined when there is no such element.
+// If you haven’t already, also write a recursive version of nth.
+////////////////////////////////////////////////////////////////////////////////
+function arrayToList(array){
+  var list = null;
+  for (var i=array.length-1; i>=0; i--)
+      list = {value: array[i], rest:list};
+  return list;
+}
+console.log(arrayToList(["1"]));
