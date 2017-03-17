@@ -226,10 +226,40 @@ console.log(reverseArrayInPlace(['cat', 'dog', 'fish']));
 // in the list, or undefined when there is no such element.
 // If you haven’t already, also write a recursive version of nth.
 ////////////////////////////////////////////////////////////////////////////////
+
+//part 1
 function arrayToList(array){
   var list = null;
-  for (var i=array.length-1; i>=0; i--)
-      list = {value: array[i], rest:list};
+  for (var i = array.length - 1; i >= 0; i--)
+      list = prepend(array[i], list);
   return list;
 }
-console.log(arrayToList(["1"]));
+console.log(arrayToList([1, 2, 3]));
+
+
+//part 2
+function listToArray(list) {
+    var arr = [];
+    var current = list;
+    while (current !== null) {
+        arr.push(current.value);
+        current = current.rest;
+    }
+    return arr;
+}
+console.log(listToArray(arrayToList([10, 20, 30])));
+
+
+//part 3
+function prepend(value, list) {
+  return {value: value, rest: list};
+}
+console.log(prepend(10, prepend(20, null)));
+
+
+
+//part 4
+function nth(){
+
+}
+//console.log(nth(arrayToList([10, 20, 30]), 1));
