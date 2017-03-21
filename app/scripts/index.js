@@ -227,6 +227,10 @@ console.log(reverseArrayInPlace(['cat', 'dog', 'fish']));
 // If you haven’t already, also write a recursive version of nth.
 ////////////////////////////////////////////////////////////////////////////////
 
+//helpful for explaining this section
+//https://sherriefuqua.com/pages/blog/articles/eloquent-js-a-list.html
+//
+
 //part 1
 function arrayToList(array){
   var list = null;
@@ -240,26 +244,75 @@ console.log(arrayToList([1, 2, 3]));
 //part 2
 function listToArray(list) {
     var arr = [];
-    var current = list;
-    while (current !== null) {
-        arr.push(current.value);
-        current = current.rest;
+    while (list !== null) {
+        arr.push(list.value);
+        list = list.rest;
     }
     return arr;
 }
-console.log(listToArray(arrayToList([10, 20, 30])));
+console.log(listToArray(arrayToList([1, 2, 3])));
 
 
 //part 3
 function prepend(value, list) {
   return {value: value, rest: list};
 }
-console.log(prepend(10, prepend(20, null)));
+console.log(prepend(1, prepend(2, null)));
 
 
 
 //part 4
-function nth(){
-
+function nth(list, n){
+  if (!list)
+    return undefined;
+  else if (n == 0)
+    return list.value;
+  else
+    return nth(list.rest, n - 1);
 }
-//console.log(nth(arrayToList([10, 20, 30]), 1));
+console.log(nth(arrayToList([1, 2, 3]), 2));
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Write a function, deepEqual, that takes two values and returns true only
+// if they are the same value or are objects with the same properties whose
+// values are also equal when compared with a recursive call to deepEqual.
+// To find out whether to compare two things by identity (use the ===
+// operator for that) or by looking at their properties, you can use the
+// typeof operator. If it produces "object" for both values, you should do a
+// deep comparison. But you have to take one silly exception into account:
+// by a historical accident, typeof null also produces "object".
+////////////////////////////////////////////////////////////////////////////////
+
+//helpful for explaining this section
+//https://sherriefuqua.com/pages/blog/articles/eloquent-js-a-deep-comparison.html
+//
+
+function deepEqual(a, b){
+  if (a === b) {
+    return true;
+  }
+
+  if (a === null || typeof a !== "object" ||
+      b === null || typeof b !== "object") {
+    return false;
+  }
+
+  var propertyA = 0;
+  var propertyB = 0;
+  for (var prop in a) {
+    propertyA += 1;
+  }
+  for (var prop in b) {
+    propertyB += 1;
+    if (!(prop in a) || !deepEqual(a[prop], b[prop]))
+      return false;
+  }
+    return propertyA === propertyB;
+}
+
+var obj = {here: {is: "an"}, object: 2};
+console.log(deepEqual(obj, {here: 1, object: 2}));
+console.log(deepEqual(obj, {here: {is: "an"}, object: 2}));
