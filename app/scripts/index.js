@@ -402,7 +402,6 @@ function age(person) {
 function motherInData(person) {
   return (person.mother in peoplesName);
 }
-console.log(motherInData([8]));
 
 function ageDifference(person) {
   return (Math.abs(age(peoplesName[person.mother]) - age(person)));
