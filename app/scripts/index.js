@@ -427,7 +427,39 @@ console.log(average(ancestors.filter(motherInData).map(ageDifference)));
 // of death, dividing it by 100, and rounding it up, as in Math.ceil(person.
 // died / 100).
 ////////////////////////////////////////////////////////////////////////////////
+function groupBy(array, computeGroup) {
+	  var peopleByGroup = {};
+	  array.forEach(function(person) {
+	    var currentGroup = computeGroup(person);
+	    if(currentGroup in peopleByGroup) {
+	      peopleByGroup[currentGroup].push(person);
+	    } else {
+	      peopleByGroup[currentGroup] = [person];
+	    }
+	  });
+	  return peopleByGroup;
+}
 
+function computeCentury(person) {
+  return String((Math.ceil(person.died / 100)));
+}
+
+function average(array) {
+  return array.reduce(function(a, b){return a + b;}) / array.length;
+}
+
+function age(person) {
+  return person.died - person.born;
+}
+
+var peopleByCentury = groupBy(ancestors, computeCentury);
+var avgAgeByCent = {};
+for(var century in peopleByCentury) {
+  var peopleInCentury = peopleByCentury[century];
+  avgAgeByCent[century] = average(peopleInCentury.map(age));
+}
+
+console.log(avgAgeByCent);
 
 
 
@@ -436,3 +468,22 @@ console.log(average(ancestors.filter(motherInData).map(ageDifference)));
 // except that they take the array as their first argument rather than being
 // a method.
 ////////////////////////////////////////////////////////////////////////////////
+var array = [1, 2, 3, 4, 5, 6, "Seven"];
+	console.log(every(array, isNumber));
+	console.log(some(array, isNumber));
+	// A simple predicate function that tests that if a varaible is of type number
+	function isNumber(toTest) {
+	  return (typeof toTest === "number");
+	}
+
+  function every(array, predicate) {
+	  for( var i = 0 ; i < array.length ; i++ )
+	    if(!predicate(array[i])) return false;
+	  return true;
+	}
+
+  function some(array, predicate) {
+	  for( var i = 0 ; i < array.length ; i++ )
+	    if(predicate(array[i])) return true;
+	  return false;
+	}
