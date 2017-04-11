@@ -200,7 +200,7 @@ function countChar (string, char) {
 
 //uses underscore
 var numberRange = _.range(1, 11);
-console.log(numberRange);
+//console.log(numberRange);
 
 //creates two arguments
 function range(start, end){
@@ -210,8 +210,8 @@ function range(start, end){
   }
   return list;
 }
-console.log(range(1, 10));
-console.log(sum(range(1, 10)));
+//console.log(range(1, 10));
+//console.log(sum(range(1, 10)));
 
 
 //part 2
@@ -220,7 +220,7 @@ function sum(arr) {
       return a + b;
    }, 0);
 }
-console.log(sum([1, 2, 3, 4, 5]));
+//console.log(sum([1, 2, 3, 4, 5]));
 
 
 
@@ -244,7 +244,7 @@ function reverseArray(arr){
     }
   return reversed;
 }
-console.log(reverseArray(['cat', 'dog', 'fish', 'dragon']));
+//console.log(reverseArray(['cat', 'dog', 'fish', 'dragon']));
 
 
 
@@ -256,7 +256,7 @@ function reverseArrayInPlace(arr){
     }
   return arr;
 }
-console.log(reverseArrayInPlace(['cat', 'dog', 'fish']));
+//console.log(reverseArrayInPlace(['cat', 'dog', 'fish']));
 
 
 
@@ -283,7 +283,7 @@ function arrayToList(array){
       list = prepend(array[i], list);
   return list;
 }
-console.log(arrayToList([1, 2, 3]));
+//console.log(arrayToList([1, 2, 3]));
 
 
 //part 2
@@ -295,14 +295,14 @@ function listToArray(list) {
     }
     return arr;
 }
-console.log(listToArray(arrayToList([1, 2, 3])));
+//console.log(listToArray(arrayToList([1, 2, 3])));
 
 
 //part 3
 function prepend(value, list) {
   return {value: value, rest: list};
 }
-console.log(prepend(1, prepend(2, null)));
+//console.log(prepend(1, prepend(2, null)));
 
 
 
@@ -315,7 +315,7 @@ function nth(list, n){
   else
     return nth(list.rest, n - 1);
 }
-console.log(nth(arrayToList([1, 2, 3]), 2));
+//console.log(nth(arrayToList([1, 2, 3]), 2));
 
 
 
@@ -359,8 +359,8 @@ function deepEqual(a, b){
 }
 
 var obj = {here: {is: "an"}, object: 2};
-console.log(deepEqual(obj, {here: 1, object: 2}));
-console.log(deepEqual(obj, {here: {is: "an"}, object: 2}));
+//console.log(deepEqual(obj, {here: 1, object: 2}));
+//console.log(deepEqual(obj, {here: {is: "an"}, object: 2}));
 
 
 
@@ -413,7 +413,7 @@ function average(array) {
   })/array.length);
 }
 
-console.log(average(ancestors.filter(motherInData).map(ageDifference)));
+//console.log(average(ancestors.filter(motherInData).map(ageDifference)));
 
 
 
@@ -459,7 +459,7 @@ for(var century in peopleByCentury) {
   avgAgeByCent[century] = average(peopleInCentury.map(age));
 }
 
-console.log(avgAgeByCent);
+//console.log(avgAgeByCent);
 
 
 
@@ -469,8 +469,8 @@ console.log(avgAgeByCent);
 // a method.
 ////////////////////////////////////////////////////////////////////////////////
 var array = [1, 2, 3, 4, 5, 6, "Seven"];
-	console.log(every(array, isNumber));
-	console.log(some(array, isNumber));
+	//console.log(every(array, isNumber));
+	//console.log(some(array, isNumber));
 	// A simple predicate function that tests that if a varaible is of type number
 	function isNumber(toTest) {
 	  return (typeof toTest === "number");
@@ -487,3 +487,145 @@ var array = [1, 2, 3, 4, 5, 6, "Seven"];
 	    if(predicate(array[i])) return true;
 	  return false;
 	}
+
+
+
+
+///Chapter 6
+
+
+
+
+// Write a constructor Vector that represents a vector in two-dimensional
+// space. It takes x and y parameters (numbers), which it should save to
+// properties of the same name.
+// Give the Vector prototype two methods, plus and minus, that take another
+// vector as a parameter and return a new vector that has the sum
+// or difference of the two vectors’ (the one in this and the parameter) x
+// and y values.
+// Add a getter property length to the prototype that computes the length
+// of the vector—that is, the distance of the point (x, y) from the origin (0,
+// 0).
+function Vector(x, y){
+	this.x = x;
+	this.y = y;
+}
+
+Vector.prototype.plus = function(a){
+	return new Vector(this.x + a.x, this.y + a.y);
+};
+
+Vector.prototype.minus = function(a){
+	return new Vector(this.x - a.x, this.y - a.y);
+};
+
+Vector.prototype.__defineGetter__("length", function(){
+	return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+});
+
+Object.defineProperty(Vector.prototype, "norm", {get: function(){
+	return Math.sqrt(this.x*this.x + this.y*this.y);
+}});
+
+console.log(new Vector(1, 2).plus(new Vector(2, 3)));
+console.log(new Vector(1, 2).minus(new Vector(2, 3)));
+console.log(new Vector(3, 4).length);
+
+
+
+// Implement a cell type named StretchCell(inner, width, height) that conforms
+// to the table cell interface described earlier in the chapter. It should
+// wrap another cell (like UnderlinedCell does) and ensure that the resulting
+// cell has at least the given width and height, even if the inner cell would
+// naturally be smaller.
+function StretchCell(inner, width, height){
+	this.inner = inner;
+	this.width = width;
+	this.height = height;
+
+	var text = this.inner.text;
+	if (text.length < height) {
+		while (height - text.length > 0) {
+			text = text.concat([""]);
+			--height;
+		}
+	}
+	this.inner.text = text.map(function (line){
+		if (line.length < width) {
+			return line.concat(repeat(" ", width - line.length));
+		} else {
+			return line;
+		}
+	});
+}
+
+StretchCell.prototype.minHeight = function(){
+	return this.inner.minHeight();
+};
+
+StretchCell.prototype.minWidth = function(){
+	return this.inner. minWidth();
+};
+
+StretchCell.prototype.draw = function(x, y){
+	return this.inner.draw(x, y);
+};
+
+// var sc = new StretchCell(new TextCell("abc"), 1, 2);
+// console.log(sc.minWidth());
+// console.log(sc.minHeight());
+// console.log(sc.draw(3, 2));
+
+
+
+
+// Design an interface that abstracts iteration over a collection of values.
+// An object that provides this interface represents a sequence, and the
+// interface must somehow make it possible for code that uses such an
+// object to iterate over the sequence, looking at the element values it is
+// made up of and having some way to find out when the end of the sequence
+// is reached.
+// When you have specified your interface, try to write a function logFive
+// that takes a sequence object and calls console.log on its first five elements—
+// or fewer, if the sequence has fewer than five elements.
+// Then implement an object type ArraySeq that wraps an array and allows
+// iteration over the array using the interface you designed. Implement
+// another object type RangeSeq that iterates over a range of integers (taking
+// 126 from and to arguments to its constructor) instead.
+function ArraySeq(a) {
+    this.container = a;
+}
+ArraySeq.prototype.begin = function () {
+    this.curr_idx = 0;
+    return this.curr_idx;
+};
+ArraySeq.prototype.end = function () {
+    return this.container.length;
+};
+ArraySeq.prototype.next = function () {
+    ++this.curr_idx;
+    return this.curr_idx;
+};
+ArraySeq.prototype.valueAt = function (iterator) {
+    return iterator < this.container.length ? this.container[iterator] : undefined;
+};
+
+
+function RangeSeq(from, to) {
+    this.container = [];
+    for(var i=from; i<=to; ++i) {
+        this.container.push(i);
+    }
+}
+RangeSeq.prototype = Object.create(ArraySeq.prototype);
+
+
+function logFive(seq) {
+    var c = 0;
+    for(var i=seq.begin(); i!=seq.end() && c<5; i=seq.next(), ++c) {
+        console.log(seq.valueAt(i));
+    }
+}
+
+logFive(new ArraySeq([1, 2]));
+logFive(new RangeSeq(100, 1000));
