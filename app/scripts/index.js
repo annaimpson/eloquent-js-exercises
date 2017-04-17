@@ -629,3 +629,666 @@ function logFive(seq) {
 
 logFive(new ArraySeq([1, 2]));
 logFive(new RangeSeq(100, 1000));
+
+
+
+//Chapter 7
+
+
+
+//There are several obvious problems with our herbivores. First, they
+// are terribly greedy, stuffing themselves with every plant they see until
+// they have wiped out the local plant life. Second, their randomized movement
+// (recall that the view.find method returns a random direction when
+// multiple directions match) causes them to stumble around ineffectively
+// and starve if there don’t happen to be any plants nearby. And finally,
+// they breed very fast, which makes the cycles between abundance and
+// famine quite intense.
+
+
+var PIXEL_RATIO = (function () {
+    var ctx = document.createElement("canvas").getContext("2d"),
+        dpr = window.devicePixelRatio || 1,
+        bsr = ctx.webkitBackingStorePixelRatio ||
+              ctx.mozBackingStorePixelRatio ||
+              ctx.msBackingStorePixelRatio ||
+              ctx.oBackingStorePixelRatio ||
+              ctx.backingStorePixelRatio || 1;
+
+    return dpr / bsr;
+})();
+
+function Vector (x , y ) {
+	this.x = x ;
+	this.y = y ;
+}
+
+Vector.prototype.plus = function ( other ) {
+	return new Vector ( this.x + other.x , this.y + other.y ) ;
+};
+Vector.prototype.equals = function(other) {
+  return this.x === other.x && this.y === other.y;
+};
+Vector.prototype.length = function() {
+  return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+};
+
+function Grid ( width , height ) {
+	this.space = new Array ( width * height ) ;
+	this.width = width ;
+	this.height = height ;
+}
+Grid.prototype.isInside = function ( vector ) {
+	return vector.x >= 0 && vector.x < this.width &&
+	vector.y >= 0 && vector.y < this.height ;
+};
+Grid.prototype.get = function ( vector ) {
+	return this.space [ vector.x + this.width * vector.y ];
+};
+Grid.prototype.set = function ( vector , value ) {
+	this.space [ vector.x + this.width * vector.y ] = value ;
+};
+Grid.prototype.forEach = function(f, context) {
+  for (var y = 0; y < this.height; y++) {
+    for (var x = 0; x < this.width; x++) {
+      var value = this.space[x + y * this.width];
+      if (value != null)
+        f.call(context, value, new Vector(x, y));
+    }
+  }
+};
+Grid.prototype.forEachSpace = function(f, context) {
+  for (var y = 0; y < this.height; y++) {
+    for (var x = 0; x < this.width; x++) {
+      var value = this.space[x + y * this.width];
+      if (value === null)
+        f.call(context, value, new Vector(x, y));
+    }
+  }
+};
+
+var directions = {
+" n ": new Vector ( 0 , -1),
+" ne ": new Vector ( 1 , -1),
+" e ": new Vector ( 1 , 0),
+" se ": new Vector ( 1 , 1),
+" s ": new Vector ( 0 , 1),
+" sw ": new Vector ( -1 , 1),
+" w ": new Vector ( -1 , 0),
+" nw ": new Vector ( -1 , -1)
+};
+
+function randomElement ( array ) {
+	return array [ Math.floor ( Math.random() * array.length )];
+}
+var directionNames = " n ne e se s sw w nw ".split (" ");
+
+function elementFromChar ( legend , ch ) {
+	if ( ch == " ")
+		return null;
+	var element = new legend [ ch ]();
+	element.originChar = ch;
+	return element;
+}
+
+function World ( map , legend ) {
+		var grid = new Grid ( map [0].length, map.length );
+		this.grid = grid;
+		this.legend = legend;
+
+		map.forEach ( function ( line , y ) {
+			for ( var x = 0; x < line.length ; x ++)
+				grid.set ( new Vector (x , y ),
+						elementFromChar ( legend , line [ x ]) );
+		});
+}
+
+function charFromElement(element) {
+  if (element == null)
+    return " ";
+  else
+    return element.originChar;
+}
+
+World.prototype.toString = function() {
+  var output = "";
+  for (var y = 0; y < this.grid.height; y++) {
+    for (var x = 0; x < this.grid.width; x++) {
+      var element = this.grid.get(new Vector(x, y));
+      output += charFromElement(element);
+    }
+    output += "\n";
+  }
+  return output;
+};
+World.prototype.turn = function() {
+  var acted = [];
+  var energy = {};
+  var count = {};
+
+  Array.prototype.forEach.call(document.querySelectorAll('tbody'), function(tbody){
+     while (tbody.hasChildNodes()) tbody.removeChild(tbody.lastChild);
+  });
+
+  this.grid.forEach(function(critter, vector) {
+    if (critter.act && acted.indexOf(critter) == -1) {
+      var char = charFromElement(critter);
+      count[char] = count[char] ? count[char] + 1 : 1;
+      energy[char] = energy[char] ? energy[char] + critter.energy : critter.energy;
+      acted.push(critter);
+      this.letAct(critter, vector);
+      //renderRow(critter);
+    }
+  }, this);
+
+  if (!this.findRandom(' ')) {
+      return false;
+  } else {
+      for (var key in this.legend) {
+        if (key !== '#' && this.legend.hasOwnProperty(key) && !count.hasOwnProperty(key)) {
+          return false;
+        } else if (key !== '#') {
+            energy[key] = energy[key] / count[key];
+        }
+      }
+  }
+
+  return {
+      energy: energy,
+      count: count
+  };
+};
+World.prototype.letAct = function(critter, vector) {
+  var action = critter.act(new View(this, vector));
+  if (action && action.type == "move") {
+    var dest = this.checkDestination(action, vector);
+    if (dest && this.grid.get(dest) == null) {
+      this.grid.set(vector, null);
+      this.grid.set(dest, critter);
+    }
+  }
+};
+World.prototype.checkDestination = function(action, vector) {
+  if (directions.hasOwnProperty(action.direction)) {
+    var dest = vector.plus(directions[action.direction]);
+    if (this.grid.isInside(dest))
+      return dest;
+  }
+};
+World.prototype.findRandom = function(ch) {
+  var all = [];
+
+  this.grid.forEachSpace(function(value, vector) {
+    all.push(vector);
+  }, this);
+
+  if (all.length) {
+    return randomElement(all);
+  }
+
+  return null;
+};
+
+function View(world, vector) {
+  this.world = world;
+  this.vector = vector;
+}
+View.prototype.look = function(dir, depth) {
+  var ret = [];
+  depth = depth || 1;
+  var target = this.vector;
+  var ret = [];
+  for (var i = 0; i < depth; i++) {
+    var target = target.plus(directions[dir]);
+    if (this.world.grid.isInside(target))
+      ret.push(charFromElement(this.world.grid.get(target)));
+    else
+      ret.push("#");
+  }
+  return ret;
+};
+View.prototype.findAll = function(ch, depth) {
+  var found = [];
+  for (var dir in directions) {
+    var look = this.look(dir, depth);
+    for (var i = 0; i < look.length; i++) {
+      if (look[i] == ch) {
+        found.push(dir);
+        break;
+      }
+    }
+  }
+  return found;
+};
+View.prototype.find = function(ch, depth) {
+  var found = this.findAll(ch, depth);
+  if (found.length == 0) return null;
+  return randomElement(found);
+};
+View.prototype.findAnywhere = function(ch) {
+  return this.world.grid.findRandom(ch);
+};
+
+function Wall() {}
+
+function dirPlus(dir, n) {
+  var index = directionNames.indexOf(dir);
+  return directionNames[(index + n + 8) % 8];
+}
+
+function LifelikeWorld(map, legend) {
+  World.call(this, map, legend);
+}
+LifelikeWorld.prototype = Object.create(World.prototype);
+
+var actionTypes = Object.create(null);
+
+LifelikeWorld.prototype.letAct = function(critter, vector) {
+  var action = critter.act(new View(this, vector));
+  var handled = action &&
+    action.type in actionTypes &&
+    actionTypes[action.type].call(this, critter, vector, action);
+  if (!handled) {
+    critter.energy -= 0.2;
+    if (critter.energy <= 0)
+      this.grid.set(vector, null);
+  }
+};
+
+actionTypes.grow = function(critter) {
+  critter.energy += 0.5;
+  return true;
+};
+actionTypes.move = function(critter, vector, action) {
+  var dest = this.checkDestination(action, vector);
+  if (dest == null ||
+      critter.energy <= 1 ||
+      this.grid.get(dest) != null)
+    return false;
+  critter.energy -= 1;
+  this.grid.set(vector, null);
+  this.grid.set(dest, critter);
+  return true;
+};
+actionTypes.eat = function(critter, vector, action) {
+  var dest = this.checkDestination(action, vector);
+  var atDest = dest != null && this.grid.get(dest);
+  if (!atDest || atDest.energy == null)
+    return false;
+  critter.energy += atDest.energy;
+  //if (atDest.row && atDest.row.parentNode) atDest.row.parentNode.removeChild(atDest.row);
+  this.grid.set(dest, null);
+  return true;
+};
+actionTypes.reproduce = function(critter, vector, action) {
+  var baby = elementFromChar(this.legend,
+                             critter.originChar);
+  var dest = this.checkDestination(action, vector);
+  if (
+    dest == null ||
+    critter.energy <= 2 * baby.energy ||
+    this.grid.get(dest) != null
+  )
+    return false;
+  critter.energy -= 2 * baby.energy;
+  this.grid.set(dest, baby);
+  return true;
+};
+actionTypes.reproduceRandom = function(critter, action) {
+  var baby = elementFromChar(this.legend,
+                             critter.originChar);
+  var dest = this.findRandom(' ');
+  if (dest == null ||
+    critter.energy <= 2 * baby.energy ||
+    this.grid.get(dest) != null
+  )
+    return false;
+  critter.energy -= 2 * baby.energy;
+  this.grid.set(dest, baby);
+  return true;
+};
+
+function Plant() {
+  this.energy = 3 + Math.random() * 4;
+}
+Plant.prototype.act = function(context) {
+  if (this.energy > 15) {
+    var space = context.find(" ");
+      if (space)
+        return {type: "reproduce", direction: space};
+  }
+  if (this.energy < 20)
+    return {type: "grow"};
+};
+
+var plantEaterId = 0;
+
+function PlantEater() {
+  this.energy = 20;
+  this.id = plantEaterId++;
+  this.type = 'plant-eater';
+  this.char = 'O';
+  this.message = 'I\'m doin the random thing.';
+  this.row = document.createElement('tr');
+}
+PlantEater.prototype.act = function(context) {
+  var space = context.find(" ");
+  if (this.energy > 50 && space)
+    return {type: "reproduce", direction: space};
+  var plant = context.find("*");
+  if (plant)
+    return {type: "eat", direction: plant};
+  if (space)
+    return {type: "move", direction: space};
+};
+
+function renderRow(critter) {
+  if (critter.row) {
+    if (critter.energy <= 0) {
+      critter.row.parentNode.removeChild(critter.row);
+    } else {
+      if (!critter.row.parentNode) {
+          document.getElementById(critter.type + '-table').appendChild(critter.row);
+      }
+      critter.row.innerHTML = '<td class="element-cell ' + critter.type + '">' + critter.char + '</td>';
+      critter.row.innerHTML += '<td>' + critter.id + '</td>';
+      critter.row.innerHTML += '<td>' + (Math.round(critter.energy * 10) / 10) + '</td>';
+      critter.row.innerHTML += '<td>' + critter.message + '</td>';
+    }
+  }
+}
+
+function animateWorld(world, elId, speed, limit) {
+  var worldContainer = document.getElementById(elId);
+  var worldElement = worldContainer.querySelector('.world');
+  var ctx = worldElement.getContext('2d');
+  var ratio = PIXEL_RATIO;
+  var hElementSize = 11;
+  var vElementSize = 16;
+  var w = world.grid.width * hElementSize;
+  var h = world.grid.height * vElementSize;
+  worldElement.width = w * ratio;
+  worldElement.height = h * ratio;
+  worldElement.style.width = w + "px";
+  worldElement.style.height = h + "px";
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  var energyChart = new Highcharts.Chart({
+    title: {
+        text: 'Avg Life Form Energy'
+    },
+    tooltip: {
+        enabled: false
+    },
+    plotOptions: {
+        line: {
+            marker: {
+                enabled: false
+            }
+        }
+    },
+    chart: {
+      renderTo: worldContainer.querySelector('.energy-chart'),
+      animation: false
+    }
+  });
+  var countChart = new Highcharts.Chart({
+    title: {
+      text: 'Avg Life Form Count'
+    },
+    tooltip: {
+        enabled: false
+    },
+    plotOptions: {
+        line: {
+            marker: {
+                enabled: false
+            }
+        }
+    },
+    chart: {
+      renderTo: worldContainer.querySelector('.count-chart'),
+      animation: false
+    }
+  });
+  var energySeries = {};
+  var countSeries = {};
+  var colors = {
+      '@': '#ffa500',
+      'O': '#ffcccc',
+      '*': '#aaffbb'
+  };
+  ['@', '*', 'O'].forEach(function(char){
+      energySeries[char] = energyChart.addSeries({
+          name: char,
+          color: colors[char],
+          data: [[0,0]]
+      }, true, true);
+      countSeries[char] = countChart.addSeries({
+          name: char,
+          color: colors[char],
+          data: [[0,0]]
+      }, true, true);
+  });
+  var turnsElement = worldContainer.querySelector('.turns');
+  var avgEnergyElement = worldContainer.querySelector('.energy-avg');
+  var turns = 0;
+  var stats = {};
+
+  function renderSymbol(left, top, hElementSize, vElementSize, content, backgroundFill, textFill) {
+    ctx.fillStyle = backgroundFill;
+    ctx.save();
+    ctx.fillRect(left, top, hElementSize, vElementSize);
+    if (content) {
+      ctx.font = '18px monospace';
+      ctx.fillStyle = textFill;
+      ctx.save();
+      ctx.fillText(content, left, top + vElementSize * 0.9);
+    }
+  }
+
+  function renderLine(line, index) {
+    var content;
+    var backgroundFill;
+    var textFill;
+
+    for (var i = 0; i < line.length; i++) {
+      content = line.charAt(i);
+      switch(content) {
+        case '#':
+          backgroundFill = '#ccc';
+          textFill = '#aaa';
+          break;
+        case 'O':
+          backgroundFill = '#573b0c';
+          textFill = '#ffcccc';
+          break;
+        case '@':
+          backgroundFill = '#573b0c';
+          textFill = '#ffa500';
+          break;
+        case '*':
+          backgroundFill = '#573b0c';
+          textFill = '#aaffbb';
+          break;
+        default:
+          backgroundFill = '#573b0c';
+          content = null;
+      }
+      renderSymbol(i * hElementSize, index * vElementSize, hElementSize, vElementSize, content, backgroundFill, textFill);
+    }
+  }
+
+  var ret = function() {
+    if ((!limit || turns < limit) && stats) {
+      var lines =  world.toString().split('\n');
+      var lastFiveStats = [];
+      lines.forEach(renderLine);
+      stats = world.turn();
+      if (stats) {
+        lastFiveStats.push(stats);
+        if (lastFiveStats.length > 5) lastFiveStats.unshift();
+        avgEnergyHTML = '';
+
+        ['*', 'O', '@'].forEach(function(key){
+            avgEnergyHTML += key + ': ' + Math.round(stats.energy[key]) + ' ';
+            energySeries[key].addPoint([turns, Math.round(stats.energy[key])], true, turns > 50, false);
+            countSeries[key].addPoint([turns, Math.round(stats.count[key])], true, turns > 50, false);
+        });
+
+        avgEnergyElement.innerHTML = avgEnergyHTML;
+      }
+      turnsElement.innerHTML = turns++ + 1;
+      window.requestAnimationFrame(ret);
+    } else {
+      worldContainer.querySelector('.unbalanced').innerHTML = 'Unbalanced!';
+    }
+  };
+
+  return ret;
+}
+
+var smartPlantEaterId = 0;
+
+function SmartPlantEater() {
+  this.energy = 20;
+  this.foodLocations = [];
+  this.id = smartPlantEaterId++;
+  this.type = 'smart-plant-eater';
+  this.char = 'O';
+  this.message = 'I\'m new!';
+  this.row = document.createElement('tr');
+}
+SmartPlantEater.prototype.isHungry = function() {
+  return 40 / Math.max(40, this.energy) >= Math.random();
+};
+SmartPlantEater.prototype.findFood = function(spaces) {
+  var bestDirection = null;
+
+  var tmpFoodLocations = this.foodLocations.slice();
+
+  for (var i = 0; i < this.foodLocations.length && bestDirection === null; i++) {
+    var foodLocation = this.foodLocations[i];
+    var travelDistance = foodLocation.length();
+
+    if (travelDistance === 0) {
+      tmpFoodLocations.pop();
+      continue;
+    }
+
+    for (var i = 0; i < spaces.length; i++) {
+      if (foodLocation.plus(directions[spaces[i]]).length() < travelDistance) {
+        bestDirection = spaces[i];
+      }
+    }
+
+    if (bestDirection === null) {
+      tmpFoodLocations.push(tmpFoodLocations.shift());
+    }
+  }
+
+  this.foodLocations = tmpFoodLocations;
+
+  return bestDirection;
+};
+SmartPlantEater.prototype.updateLocation = function(direction) {
+  var vector = directions[direction];
+
+  for (var i = 0; i < this.foodLocations.length; i++) {
+      this.foodLocations[i] = this.foodLocations[i].plus(vector);
+  }
+
+  this.foodLocations.sort(function(a, b) {
+    var aLength = a.length();
+    var bLength = b.length();
+
+    if (aLength < bLength) {
+      return -1;
+    } else if (aLength > bLength) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+};
+SmartPlantEater.prototype.act = function(context) {
+  this.message = '';
+  var spaces = context.findAll(" ");
+  var space = randomElement(spaces);
+
+  if (this.energy > 50 && space) {
+    return {type: "reproduce", direction: space};
+  }
+
+  var plant = context.findAll("*");
+  var shouldEat = this.isHungry() && plant && plant.length > 1;
+
+  if (!plant.length) {
+    plant = randomElement(context.findAll('*', 5));
+    var hunt = plant && context.look(plant, 1)[0] === ' ';
+    if (hunt) {
+      this.message = 'On the hunt: ' + plant;
+      space = plant;
+    }
+  } else {
+    plant = randomElement(plant);
+    var foodVector = new Vector(0, 0);
+    var addLocation = !this.foodLocations.length || this.foodLocations[0].length() !== 0;
+    if (this.foodLocations.length > 3) {
+      this.foodLocations.pop();
+    }
+    if (shouldEat) {
+      if (addLocation) this.foodLocations.unshift(foodVector);
+      this.message = 'NomNomNom!';
+      return {type: "eat", direction: plant};
+    } else {
+      this.message = 'Found food!';
+      if (addLocation) this.foodLocations.push(foodVector);
+    }
+  }
+
+  if (space) {
+    if (!hunt && shouldEat) {
+      var foodDirection = this.findFood(spaces);
+      if (foodDirection !== null) {
+          space = foodDirection;
+      }
+    }
+    this.updateLocation(space);
+    if (!this.message.length) this.message = 'Moving: ' + space;
+    return {type: "move", direction: space};
+  }
+  this.message = 'No where to go!';
+};
+
+
+
+function SmartPlantEater() {}
+
+animateWorld(new LifelikeWorld(
+  ["############################",
+   "#####                 ######",
+   "##   ***                **##",
+   "#   *##**         **  O  *##",
+   "#    ***     O    ##**    *#",
+   "#       O         ##***    #",
+   "#                 ##**     #",
+   "#   O       #*             #",
+   "#*          #**       O    #",
+   "#***        ##**    O    **#",
+   "##****     ###***       *###",
+   "############################"],
+  {"#": Wall,
+   "O": SmartPlantEater,
+   "*": Plant}
+));
+
+
+// Any serious ecosystem has a food chain longer than a single link. Write
+// another critter that survives by eating the herbivore critter. You’ll notice
+// that stability is even harder to achieve now that there are cycles
+// at multiple levels. Try to find a strategy to make the ecosystem run
+// smoothly for at least a little while.
+// One thing that will help is to make the world bigger. This way, local
+// population booms or busts are less likely to wipe out a species entirely,
+// and there is space for the relatively large prey population needed to
+// sustain a small predator population.
