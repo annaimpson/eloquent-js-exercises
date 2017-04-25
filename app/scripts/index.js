@@ -700,20 +700,6 @@ function withBoxUnlocked(body) {
   }
 }
 
-function withBoxUnlocked(body) {
-  var state = box.locked;
-  box.unlock();
-  try {
-    body();
-  } catch (e) {
-    // do nothing
-  } finally {
-    if (state) {
-      box.lock();
-    }
-  }
-}
-
 withBoxUnlocked(function() {
   box.content.push("gold piece");
 });
