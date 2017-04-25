@@ -651,19 +651,7 @@ function primitiveMultiply(a, b) {
     throw new MultiplicatorUnitFailure();
 }
 
-function reliableMultiply1(a, b) {
-  try {
-    return primitiveMultiply(a, b);
-  } catch (e) {
-    if (e instanceof MultiplicatorUnitFailure) {
-      return reliableMultiply(a, b);
-    } else {
-      throw e;
-    }
-  }
-}
-
-function reliableMultiply2(a, b) {
+function reliableMultiply(a, b) {
   for (;;) {
     try {
       return primitiveMultiply(a, b);
@@ -676,8 +664,8 @@ function reliableMultiply2(a, b) {
   }
 }
 
-console.log(reliableMultiply1(8, 8));
-console.log(reliableMultiply1(6, 6));
+console.log(reliableMultiply(5, 10));
+console.log(reliableMultiply(6, 6));
 
 
 
@@ -689,6 +677,17 @@ console.log(reliableMultiply1(6, 6));
 // argument, unlocks the box, runs the function, and then ensures that the
 // box is locked again before returning, regardless of whether the argument
 // function returned normally or threw an exception.
+var box = {
+	locked : true ,
+	unlock : function () { this . locked = false ; } ,
+	lock : function () { this . locked = true ; } ,
+	_content : [] ,
+	get content () {
+	if ( this . locked ) throw new Error (" Locked !") ;
+	return this . _content ;
+	}
+};
+
 function withBoxUnlocked(body) {
   box.unlock();
   try {
