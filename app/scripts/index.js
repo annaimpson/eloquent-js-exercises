@@ -815,3 +815,71 @@ run("do(define(x, 4),",
     "   setx(50),",
     "   print(x))");
 run("set(quux, true)");
+
+
+
+
+
+//Chapter 13
+
+//Question 1
+var MOUNTAINS = [
+	  {name: "Kilimanjaro", height: 5895, country: "Tanzania"},
+	  {name: "Everest", height: 8848, country: "Nepal"},
+	  {name: "Mount Fuji", height: 3776, country: "Japan"},
+	  {name: "Mont Blanc", height: 4808, country: "Italy/France"},
+	  {name: "Vaalserberg", height: 323, country: "Netherlands"},
+	  {name: "Denali", height: 6168, country: "United States"},
+	  {name: "Popocatepetl", height: 5465, country: "Mexico"}
+	];
+
+
+	function buildTable() {
+		var table = document.createElement("table");
+		document.body.appendChild(table);
+
+		// add the headers to the table
+		var headerKeys = Object.keys(MOUNTAINS[0]);
+		var headerRow = document.createElement("tr");
+		for(var i = 0 ; i < headerKeys.length ; i++) {
+			var headerCell = document.createElement("th");
+			headerCell.textContent = headerKeys[i].toUpperCase();
+			headerRow.appendChild(headerCell);
+		}
+
+		table.appendChild(headerRow);
+
+		MOUNTAINS.forEach(function(mountain) {
+			var currentTableRow = document.createElement("tr");
+			for(var prop in mountain) {
+				if(mountain.hasOwnProperty(prop)) {
+					var currentTableCell = document.createElement("td");
+					currentTableCell.textContent = mountain[prop];
+					currentTableRow.appendChild(currentTableCell);
+				}
+			}
+			table.appendChild(currentTableRow);
+		});
+	}
+
+	buildTable();
+
+
+
+//Question 2
+
+
+function getElementsByTagName(tag) {
+	var foundElements = [];
+	tag = tag.toUpperCase();
+	function getElementsByTag(currentNode) {
+		if(currentNode.tagName === tag) foundElements.push(currentNode);
+		var childrens = currentNode.childNodes;
+		for(var i = 0 ; i < childrens.length; i++){
+			getElementsByTag(childrens[i]);
+		}
+	}
+		getElementsByTag(document.body);
+		return foundElements;
+	}
+	var found = getElementsByTagName("p");
